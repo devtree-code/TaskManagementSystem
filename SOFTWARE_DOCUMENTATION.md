@@ -331,6 +331,20 @@ The `ExcelExportService` constructs an open XML spreadsheet (`.xlsx`) in memory 
 ]
 ```
 
+### 5. Edit Task (PUT)
+- **Endpoint**: `PUT /api/tasks/{id}`
+- **Authentication**: `Bearer <token>`
+- **Request Body**:
+```json
+{
+  "title": "Flutter SQLite Cache [UPDATED]",
+  "description": "Updated offline sync rules and conflict resolution.",
+  "taskDate": "2026-10-21T09:00:00.000Z"
+}
+```
+- **Response**: `200 OK` (Returns updated `TaskResponseDto`).
+- **Security Check**: Enforces that regular users can only edit their own tasks. Returns `403 Forbidden` if attempting to edit another user's task. Administrators can edit any task.
+
 ---
 
 ## 9. Extending the System

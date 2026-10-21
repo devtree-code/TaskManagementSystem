@@ -37,6 +37,12 @@ namespace TaskManagementSystem.BL.Services
             return MapToResponseDto(created);
         }
 
+        public async Task<TaskResponseDto?> GetTaskByIdAsync(int id)
+        {
+            var task = await _taskRepository.GetByIdAsync(id);
+            return task == null ? null : MapToResponseDto(task);
+        }
+
         public async Task<IEnumerable<TaskResponseDto>> GetMyTasksAsync(string userId, TaskFilterDto filter)
         {
             var tasks = await _taskRepository.GetUserTasksAsync(
@@ -57,6 +63,30 @@ namespace TaskManagementSystem.BL.Services
                 filter.ToDate);
 
             return tasks.Select(MapToResponseDto);
+        }
+
+        public async Task<TaskResponseDto> UpdateTaskAsync(int id, string currentUserId, bool isAdmin, UpdateTaskDto dto)
+        {
+            var task = await _taskRepository.GetByIdAsync(id);
+            if (task == null)
+            {
+                throw new KeyNotFoundException($"Task with ID #{id} was not found.");
+            }
+
+            // Authorization check: Admin can edit any task; regular users can only edit their own task
+            if (!isAdmin && task.UserId != currentUserId)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to edit this task.");
+            }
+
+            task.Title = dto.Title;
+            task.Description = dto.Description;
+            task.TaskDate = dto.TaskDate;
+
+            await _taskRepository.UpdateAsync(task);
+
+            var updated = await _taskRepository.GetByIdAsync(id) ?? task;
+            return MapToResponseDto(updated);
         }
 
         private static TaskResponseDto MapToResponseDto(UserTask task)

@@ -116,8 +116,9 @@ All employee accounts can also be used to log in via the Mobile API (`/api/auth/
    - Select a specific employee or view all employees.
    - Choose a quick timeframe (**Last Week**, **Last Month**, **Last Year**, or **All Time**).
    - Or pick custom **From Date** and **To Date** boundaries.
-4. Click **Apply** to filter the displayed table.
-5. Click **Export to Excel** (green button) to download a formatted `.xlsx` file preserving the exact active filter criteria.
+4. **Interactive Filters**: Instant dynamic refresh occurs as soon as you select an employee, timeframe, or date.
+5. **Edit a Record**: Click the **Edit** button (pencil icon) on any row to open the edit modal, modify the title, description, or task date, and click **Save Changes**. The table updates immediately with a success toast notification!
+6. Click **Export to Excel** (green button) to download a formatted `.xlsx` file preserving the exact active filter criteria.
 
 ### Pre-generated & Automated Excel Test Scenarios
 You can run the dedicated export verification script anytime to test all filter permutations:
@@ -203,6 +204,31 @@ Base URL: `http://localhost:5153` (or your local network IP/emulator IP, e.g. `1
 
 You can also use custom range query params:
 `GET /api/tasks/my-tasks?fromDate=2026-10-01&toDate=2026-10-21`
+
+### 5. Edit an Existing Task
+`PUT /api/tasks/{id}`  
+**Headers**: `Authorization: Bearer <token>`
+```json
+{
+  "title": "Flutter SQLite Cache [UPDATED]",
+  "description": "Updated offline sync rules and handled conflict resolution.",
+  "taskDate": "2026-10-21T09:00:00.000Z"
+}
+```
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "title": "Flutter SQLite Cache [UPDATED]",
+  "description": "Updated offline sync rules and handled conflict resolution.",
+  "taskDate": "2026-10-21T09:00:00",
+  "createdAt": "2026-10-21T08:32:15",
+  "userId": "b4737d9e-13c5-430b-b27b-2878bfce31aa",
+  "userName": "Ahmed Fathalla",
+  "userEmail": "ahmed@example.com"
+}
+```
+*(Note: Regular employees can only edit tasks they authored. Administrators can edit any task).*
 
 ---
 

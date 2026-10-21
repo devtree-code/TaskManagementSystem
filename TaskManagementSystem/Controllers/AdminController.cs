@@ -137,6 +137,56 @@ namespace TaskManagementSystem.Controllers
         }
 
         /// <summary>
+        /// Get task details by ID for the Admin edit modal.
+        /// </summary>
+        [HttpGet("task/{id:int}")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> GetTask(int id)
+        {
+            var task = await _taskService.GetTaskByIdAsync(id);
+            if (task == null)
+            {
+                return NotFound(new { message = $"Task #{id} not found." });
+            }
+            return Json(task);
+        }
+
+        /// <summary>
+        /// Update an existing task record.
+        /// </summary>
+        [HttpPost("edit-task")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> EditTask([FromBody] AdminEditTaskRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var dto = new UpdateTaskDto
+            {
+                Title = request.Title,
+                Description = request.Description,
+                TaskDate = request.TaskDate
+            };
+
+            try
+            {
+                var updated = await _taskService.UpdateTaskAsync(request.Id, adminUserId, true, dto);
+                return Ok(new { success = true, task = updated });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Admin Login View (GET)
         /// </summary>
         [HttpGet("login")]
@@ -221,5 +271,13 @@ namespace TaskManagementSystem.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));
         }
+    }
+
+    public class AdminEditTaskRequest
+    {
+        public int Id { get; set; }
+        public string? Title { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public DateTime TaskDate { get; set; }
     }
 }

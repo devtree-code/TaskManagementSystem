@@ -10,7 +10,7 @@
             <h2 class="h3 fw-bold mb-1 text-dark d-flex align-items-center">
                 <i class="bi bi-card-checklist text-primary me-2"></i>Task Submissions
             </h2>
-            <p class="text-muted mb-0 small">Real-time overview and dynamic Excel reporting for employee task submissions.</p>
+            <p class="text-muted mb-0 small">Real-time overview, inline editing, and dynamic Excel reporting for employee task submissions.</p>
         </div>
         <div class="col-12 col-md-auto d-flex align-items-center flex-wrap gap-2">
             <span class="badge bg-secondary fs-6 py-2 px-3 shadow-sm d-flex align-items-center" id="totalTasksBadge">
@@ -35,7 +35,7 @@
             <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-funnel-fill text-primary fs-5"></i>
                 <h5 class="card-title mb-0 fw-semibold text-secondary">Dynamic Filters</h5>
-                <!--span class="badge bg-light text-muted border ms-1 small fw-normal">Instant Refresh</!span-->
+                <span class="badge bg-light text-muted border ms-1 small fw-normal">Instant Refresh</span>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <button type="button" id="resetFiltersBtn" class="btn btn-outline-secondary btn-sm d-flex align-items-center" title="Reset all filters">
@@ -125,6 +125,80 @@
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- EDIT TASK MODAL                           -->
+<!-- ========================================== -->
+<div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="editTaskModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Edit Task #<span id="modalTaskIdText"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="modalAlert" class="alert alert-danger d-none" role="alert"></div>
+
+                <form id="editTaskForm">
+                    <input type="hidden" id="editTaskId" />
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">
+                                <i class="bi bi-person me-1"></i>Employee (Author)
+                            </label>
+                            <input type="text" id="editTaskUser" class="form-control bg-light" readonly />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editTaskDate" class="form-label fw-semibold small text-secondary">
+                                <i class="bi bi-calendar-event me-1"></i>When Did They Do It (Task Date) *
+                            </label>
+                            <input type="datetime-local" id="editTaskDate" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editTaskTitle" class="form-label fw-semibold small text-secondary">
+                            <i class="bi bi-tag me-1"></i>Task Title (Optional)
+                        </label>
+                        <input type="text" id="editTaskTitle" class="form-control" placeholder="Optional brief title..." maxlength="200" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editTaskDesc" class="form-label fw-semibold small text-secondary">
+                            <i class="bi bi-card-text me-1"></i>Task Description *
+                        </label>
+                        <textarea id="editTaskDesc" class="form-control" rows="5" placeholder="Enter task details..." required maxlength="4000"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="saveEditTaskBtn" class="btn btn-primary d-flex align-items-center">
+                    <span id="saveBtnSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
+                    <i class="bi bi-check-lg me-1" id="saveBtnIcon"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ACTION TOAST NOTIFICATION                  -->
+<!-- ========================================== -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1060;">
+    <div id="actionToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center">
+                <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                <span id="toastMessage">Task updated successfully!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         (function () {
@@ -138,6 +212,25 @@
             const tasksContainer = document.getElementById('tasksContainer');
             const loadingOverlay = document.getElementById('loadingOverlay');
             const totalCountNumber = document.getElementById('totalCountNumber');
+
+            // Modal elements
+            const editModalEl = document.getElementById('editTaskModal');
+            const editModal = new bootstrap.Modal(editModalEl);
+            const modalTaskIdText = document.getElementById('modalTaskIdText');
+            const editTaskId = document.getElementById('editTaskId');
+            const editTaskUser = document.getElementById('editTaskUser');
+            const editTaskTitle = document.getElementById('editTaskTitle');
+            const editTaskDate = document.getElementById('editTaskDate');
+            const editTaskDesc = document.getElementById('editTaskDesc');
+            const modalAlert = document.getElementById('modalAlert');
+            const saveEditTaskBtn = document.getElementById('saveEditTaskBtn');
+            const saveBtnSpinner = document.getElementById('saveBtnSpinner');
+            const saveBtnIcon = document.getElementById('saveBtnIcon');
+
+            // Toast element
+            const toastEl = document.getElementById('actionToast');
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            const toastMessage = document.getElementById('toastMessage');
 
             let activeController = null;
 
@@ -190,6 +283,96 @@
                         ? (document.getElementById('partialTotalCount')?.value || rows.length)
                         : matchCount;
                 }
+            });
+
+            // Event delegation to open Edit Task Modal
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.edit-task-btn');
+                if (!btn) return;
+
+                const taskId = btn.getAttribute('data-id');
+                const title = btn.getAttribute('data-title') || '';
+                const desc = btn.getAttribute('data-desc') || '';
+                const date = btn.getAttribute('data-date') || '';
+                const user = btn.getAttribute('data-user') || '';
+                const email = btn.getAttribute('data-email') || '';
+
+                modalTaskIdText.textContent = taskId;
+                editTaskId.value = taskId;
+                editTaskUser.value = `${user} (${email})`;
+                editTaskTitle.value = title;
+                editTaskDesc.value = desc;
+                editTaskDate.value = date;
+
+                modalAlert.classList.add('d-none');
+                modalAlert.textContent = '';
+
+                editModal.show();
+            });
+
+            // Save Task Changes from Modal
+            saveEditTaskBtn.addEventListener('click', function () {
+                const id = parseInt(editTaskId.value, 10);
+                const title = editTaskTitle.value.trim();
+                const description = editTaskDesc.value.trim();
+                const taskDate = editTaskDate.value;
+
+                if (!description) {
+                    modalAlert.textContent = 'Please enter a task description.';
+                    modalAlert.classList.remove('d-none');
+                    editTaskDesc.focus();
+                    return;
+                }
+
+                if (!taskDate) {
+                    modalAlert.textContent = 'Please specify when the task was performed.';
+                    modalAlert.classList.remove('d-none');
+                    editTaskDate.focus();
+                    return;
+                }
+
+                modalAlert.classList.add('d-none');
+                saveBtnSpinner.classList.remove('d-none');
+                saveBtnIcon.classList.add('d-none');
+                saveEditTaskBtn.disabled = true;
+
+                fetch('/admin/edit-task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        title: title || null,
+                        description: description,
+                        taskDate: taskDate
+                    })
+                })
+                .then(async res => {
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        throw new Error(data.message || 'Failed to update task.');
+                    }
+                    return data;
+                })
+                .then(data => {
+                    editModal.hide();
+                    toastMessage.textContent = `Task #${id} was updated successfully!`;
+                    toast.show();
+
+                    // Refresh table without page reload
+                    executeLiveFilter();
+                })
+                .catch(err => {
+                    modalAlert.textContent = err.message || 'An error occurred while saving.';
+                    modalAlert.classList.remove('d-none');
+                })
+                .finally(() => {
+                    saveBtnSpinner.classList.add('d-none');
+                    saveBtnIcon.classList.remove('d-none');
+                    saveEditTaskBtn.disabled = false;
+                });
             });
 
             // Function to perform AJAX filter request with zero full-page reload

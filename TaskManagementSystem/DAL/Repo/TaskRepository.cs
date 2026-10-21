@@ -61,6 +61,12 @@ namespace TaskManagementSystem.DAL.Repo
                 .ToListAsync();
         }
 
+        public async Task UpdateAsync(UserTask task)
+        {
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

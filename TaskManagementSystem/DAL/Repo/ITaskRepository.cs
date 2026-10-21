@@ -8,6 +8,7 @@ namespace TaskManagementSystem.DAL.Repo
         Task<UserTask?> GetByIdAsync(int id);
         Task<IEnumerable<UserTask>> GetUserTasksAsync(string userId, string? period = null, DateTime? fromDate = null, DateTime? toDate = null);
         Task<IEnumerable<UserTask>> GetAllTasksAsync(string? userId = null, string? period = null, DateTime? fromDate = null, DateTime? toDate = null);
+        Task UpdateAsync(UserTask task);
         Task SaveChangesAsync();
     }
 }

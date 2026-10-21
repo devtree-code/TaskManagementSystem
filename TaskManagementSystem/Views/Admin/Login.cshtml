@@ -1,0 +1,61 @@
+@model TaskManagementSystem.BL.DTOs.Admin.AdminLoginViewModel
+@{
+    ViewData["Title"] = "Admin Login";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card shadow-lg mt-4">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <i class="bi bi-shield-lock-fill display-5 mb-2"></i>
+                    <h4 class="fw-bold mb-0">Admin Portal</h4>
+                    <small class="text-white-50">Task Management System</small>
+                </div>
+                <div class="card-body p-4">
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger d-flex align-items-center" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>@Model.ErrorMessage</div>
+                        </div>
+                    }
+
+                    <form method="post" asp-controller="Admin" asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-semibold">Admin Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="admin@tasksystem.com" required autofocus />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" required />
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="RememberMe" class="form-check-input" id="rememberMeCheck" />
+                            <label class="form-check-label" for="rememberMeCheck">Remember me</label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary py-2 fw-semibold">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Dashboard
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light text-center py-3 text-muted small">
+                    Default credentials: <code>admin@tasksystem.com</code> / <code>Admin@123456</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

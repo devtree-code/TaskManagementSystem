@@ -1,0 +1,158 @@
+@model TaskManagementSystem.BL.DTOs.Admin.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Task Dashboard";
+}
+
+<div class="container-fluid px-4">
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold mb-1 text-dark">
+                <i class="bi bi-card-checklist text-primary me-2"></i>Task Submissions
+            </h2>
+            <p class="text-muted mb-0">Overview and export of all employee tasks submitted from the mobile application.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-secondary fs-6 py-2 px-3">
+                <i class="bi bi-stack me-1"></i> Total Tasks: <strong>@Model.TotalCount</strong>
+            </span>
+            <a class="btn btn-excel d-flex align-items-center"
+               asp-controller="Admin"
+               asp-action="Export"
+               asp-route-userId="@Model.SelectedUserId"
+               asp-route-period="@Model.SelectedPeriod"
+               asp-route-fromDate="@(Model.FromDate?.ToString("yyyy-MM-dd"))"
+               asp-route-toDate="@(Model.ToDate?.ToString("yyyy-MM-dd"))">
+                <i class="bi bi-file-earmark-excel-fill me-2 fs-5"></i> Export to Excel
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="card-title mb-0 fw-semibold text-secondary">
+                <i class="bi bi-funnel-fill text-primary me-2"></i>Filter Tasks
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-controller="Admin" asp-action="Index" class="row g-3 align-items-end">
+                <!-- User Filter -->
+                <div class="col-md-3">
+                    <label for="userId" class="form-label fw-semibold">Employee / User</label>
+                    <select id="userId" name="userId" class="form-select">
+                        <option value="">-- All Users --</option>
+                        @foreach (var user in Model.Users)
+                        {
+                            if (Model.SelectedUserId == user.Id)
+                            {
+                                <option value="@user.Id" selected="selected">@user.FullName (@user.Email)</option>
+                            }
+                            else
+                            {
+                                <option value="@user.Id">@user.FullName (@user.Email)</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- Period Filter Preset -->
+                <div class="col-md-3">
+                    <label for="period" class="form-label fw-semibold">Quick Timeframe</label>
+                    <select id="period" name="period" class="form-select">
+                        <option value="" selected="@(string.IsNullOrEmpty(Model.SelectedPeriod))">-- Custom / All Time --</option>
+                        <option value="week" selected="@(Model.SelectedPeriod == "week")">Last Week (Past 7 Days)</option>
+                        <option value="month" selected="@(Model.SelectedPeriod == "month")">Last Month (Past 30 Days)</option>
+                        <option value="year" selected="@(Model.SelectedPeriod == "year")">Last Year</option>
+                        <option value="all" selected="@(Model.SelectedPeriod == "all")">All Recorded Time</option>
+                    </select>
+                </div>
+
+                <!-- From Date -->
+                <div class="col-md-2">
+                    <label for="fromDate" class="form-label fw-semibold">From Date</label>
+                    <input type="date" id="fromDate" name="fromDate" class="form-control"
+                           value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+
+                <!-- To Date -->
+                <div class="col-md-2">
+                    <label for="toDate" class="form-label fw-semibold">To Date</label>
+                    <input type="date" id="toDate" name="toDate" class="form-control"
+                           value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-filter me-1"></i> Apply
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary" title="Reset Filters">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tasks Data Table -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            @if (!Model.Tasks.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox text-muted display-4"></i>
+                    <h5 class="mt-3 text-secondary">No Tasks Found</h5>
+                    <p class="text-muted">No task submissions match the selected filter criteria.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-custom align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 70px;" class="text-center">#</th>
+                                <th style="width: 220px;">Employee</th>
+                                <th style="width: 200px;">When Performed</th>
+                                <th style="width: 180px;">Submitted At</th>
+                                <th>Task Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var task in Model.Tasks)
+                            {
+                                <tr>
+                                    <td class="text-center fw-bold text-secondary">@task.Id</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@task.UserName</div>
+                                        <small class="text-muted"><i class="bi bi-envelope me-1"></i>@task.UserEmail</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border p-2">
+                                            <i class="bi bi-calendar2-check text-success me-1"></i>
+                                            @task.TaskDate.ToString("yyyy-MM-dd HH:mm")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small">
+                                            <i class="bi bi-clock me-1"></i>
+                                            @task.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(task.Title))
+                                        {
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">@task.Title</span>
+                                        }
+                                        <span class="text-break">@task.Description</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

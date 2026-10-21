@@ -88,12 +88,20 @@ The application will start and listen on:
 
 ---
 
-## 🔑 Default Credentials
+## 🔑 Seeded Accounts for Testing
 
-### Administrator Portal Account
-- **URL**: `http://localhost:5153/admin` (or `http://localhost:5153/admin/login`)
-- **Email**: `admin@tasksystem.com`
-- **Password**: `Admin@123456`
+The database automatically seeds an administrator account and **5 sample employee accounts** across different roles with realistic task history spanning **today, last week, last month, last year, and all-time**:
+
+| Full Name | Email | Password | Role / Specialty | Tasks Seeded |
+| :--- | :--- | :--- | :--- | :--- |
+| **System Administrator** | `admin@tasksystem.com` | `Admin@123456` | **Admin** (Portal & Management) | Management & System Setup |
+| **Sarah Connor** | `sarah.connor@tasksystem.com` | `User@123456` | Mobile / Flutter Engineer | 5 Flutter & Mobile Tasks |
+| **Elena Rostova** | `elena.rostova@tasksystem.com` | `User@123456` | Senior Backend Engineer | 5 Backend, EF & Excel Tasks |
+| **Michael Scott** | `michael.scott@tasksystem.com` | `User@123456` | Project Manager / Lead | 4 Agile & Client Review Tasks |
+| **Tariq Mansour** | `tariq.mansour@tasksystem.com` | `User@123456` | UI/UX Specialist | 4 Design System & UX Tasks |
+| **Alex Mercer** | `alex.mercer@tasksystem.com` | `User@123456` | QA Automation Specialist | 5 Test & Quality Tasks |
+
+All employee accounts can also be used to log in via the Mobile API (`/api/auth/login`) or query their own tasks (`/api/tasks/my-tasks`).
 
 ---
 
@@ -110,6 +118,18 @@ The application will start and listen on:
    - Or pick custom **From Date** and **To Date** boundaries.
 4. Click **Apply** to filter the displayed table.
 5. Click **Export to Excel** (green button) to download a formatted `.xlsx` file preserving the exact active filter criteria.
+
+### Pre-generated & Automated Excel Test Scenarios
+You can run the dedicated export verification script anytime to test all filter permutations:
+```powershell
+powershell -ExecutionPolicy Bypass -File test_seed_exports.ps1
+```
+This generates and saves spreadsheets directly into the `ExportedReports/` directory:
+- `Tasks_All_Users_All_Time.xlsx`: Complete company task log.
+- `Tasks_Last_Week.xlsx`: Filtered for tasks submitted in the past 7 days.
+- `Tasks_Last_Month.xlsx`: Filtered for tasks submitted in the past 30 days.
+- `Tasks_Sarah_Connor_Only.xlsx`: Filtered specifically for Sarah Connor (Flutter tasks).
+- `Tasks_Elena_Rostova_Only.xlsx`: Filtered specifically for Elena Rostova (Backend tasks).
 
 ---
 

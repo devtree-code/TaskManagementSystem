@@ -1,0 +1,61 @@
+@model TaskManagementSystem.BL.DTOs.Admin.AdminDashboardViewModel
+@using TaskManagementSystem.BL.Common
+
+<!-- Hidden input for total count synchronization -->
+<input type="hidden" id="partialTotalCount" value="@Model.TotalCount" />
+
+@if (!Model.Tasks.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-inbox text-muted display-4"></i>
+        <h5 class="mt-3 text-secondary">No Tasks Found</h5>
+        <p class="text-muted">No task submissions match the selected filter criteria.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover table-custom align-middle mb-0" id="tasksTable">
+            <thead>
+                <tr>
+                    <th style="width: 70px;" class="text-center">#</th>
+                    <th style="width: 220px;">Employee</th>
+                    <th style="width: 210px;">When Performed</th>
+                    <th style="width: 190px;">Submitted At</th>
+                    <th>Task Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var task in Model.Tasks)
+                {
+                    <tr class="task-row">
+                        <td class="text-center fw-bold text-secondary">@task.Id</td>
+                        <td>
+                            <div class="fw-bold text-dark user-name">@task.UserName</div>
+                            <small class="text-muted user-email"><i class="bi bi-envelope me-1"></i>@task.UserEmail</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border p-2 text-wrap">
+                                <i class="bi bi-calendar2-check text-success me-1"></i>
+                                @DateTimeHelper.FormatEgypt(task.TaskDate)
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-muted small">
+                                <i class="bi bi-clock me-1"></i>
+                                @DateTimeHelper.FormatEgypt(task.CreatedAt)
+                            </span>
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(task.Title))
+                            {
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">@task.Title</span>
+                            }
+                            <span class="text-break task-desc">@task.Description</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using TaskManagementSystem.BL.Common;
 using TaskManagementSystem.BL.DTOs.Admin;
 using TaskManagementSystem.BL.DTOs.Tasks;
 using TaskManagementSystem.BL.Services;
@@ -67,6 +68,12 @@ namespace TaskManagementSystem.Controllers
                 ToDate = toDate
             };
 
+            // If AJAX request, return only the updated partial view
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Query.ContainsKey("ajax"))
+            {
+                return PartialView("_TasksTablePartial", viewModel);
+            }
+
             return View(viewModel);
         }
 
@@ -122,7 +129,8 @@ namespace TaskManagementSystem.Controllers
             var summary = string.Join(" | ", filterDescriptions);
             var excelBytes = _excelExportService.GenerateTasksExcel(tasks, summary);
 
-            var fileName = $"Tasks_Export_{DateTime.UtcNow:yyyyMMdd_HHmmss}.xlsx";
+            var egyptNow = DateTimeHelper.NowInEgypt();
+            var fileName = $"Tasks_Export_{egyptNow:yyyyMMdd_HHmmss}.xlsx";
             const string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
             return File(excelBytes, contentType, fileName);

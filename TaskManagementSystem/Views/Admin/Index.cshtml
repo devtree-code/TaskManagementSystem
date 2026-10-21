@@ -3,20 +3,21 @@
     ViewData["Title"] = "Admin Task Dashboard";
 }
 
-<div class="container-fluid px-4">
-    <!-- Top Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="h3 fw-bold mb-1 text-dark">
+<div class="container-fluid px-3 px-md-4">
+    <!-- Top Header & Action Controls -->
+    <div class="row align-items-center justify-content-between mb-4 gy-3">
+        <div class="col-12 col-md-auto">
+            <h2 class="h3 fw-bold mb-1 text-dark d-flex align-items-center">
                 <i class="bi bi-card-checklist text-primary me-2"></i>Task Submissions
             </h2>
-            <p class="text-muted mb-0">Overview and export of all employee tasks submitted from the mobile application.</p>
+            <p class="text-muted mb-0 small">Real-time overview and dynamic Excel reporting for employee task submissions.</p>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-secondary fs-6 py-2 px-3">
-                <i class="bi bi-stack me-1"></i> Total Tasks: <strong>@Model.TotalCount</strong>
+        <div class="col-12 col-md-auto d-flex align-items-center flex-wrap gap-2">
+            <span class="badge bg-secondary fs-6 py-2 px-3 shadow-sm d-flex align-items-center" id="totalTasksBadge">
+                <i class="bi bi-stack me-2"></i>Total Tasks: <strong class="ms-1" id="totalCountNumber">@Model.TotalCount</strong>
             </span>
-            <a class="btn btn-excel d-flex align-items-center"
+            <a class="btn btn-excel d-flex align-items-center shadow-sm"
+               id="exportExcelBtn"
                asp-controller="Admin"
                asp-action="Export"
                asp-route-userId="@Model.SelectedUserId"
@@ -28,19 +29,28 @@
         </div>
     </div>
 
-    <!-- Filters Section -->
-    <div class="card mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="card-title mb-0 fw-semibold text-secondary">
-                <i class="bi bi-funnel-fill text-primary me-2"></i>Filter Tasks
-            </h5>
+    <!-- Interactive Filters Section -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-funnel-fill text-primary fs-5"></i>
+                <h5 class="card-title mb-0 fw-semibold text-secondary">Dynamic Filters</h5>
+                <!--span class="badge bg-light text-muted border ms-1 small fw-normal">Instant Refresh</!span-->
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" id="resetFiltersBtn" class="btn btn-outline-secondary btn-sm d-flex align-items-center" title="Reset all filters">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                </button>
+            </div>
         </div>
-        <div class="card-body">
-            <form method="get" asp-controller="Admin" asp-action="Index" class="row g-3 align-items-end">
+        <div class="card-body bg-light-subtle">
+            <form id="filterForm" method="get" asp-controller="Admin" asp-action="Index" class="row g-3">
                 <!-- User Filter -->
-                <div class="col-md-3">
-                    <label for="userId" class="form-label fw-semibold">Employee / User</label>
-                    <select id="userId" name="userId" class="form-select">
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="userId" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-person me-1"></i>Employee / User
+                    </label>
+                    <select id="userId" name="userId" class="form-select auto-filter">
                         <option value="">-- All Users --</option>
                         @foreach (var user in Model.Users)
                         {
@@ -57,10 +67,12 @@
                 </div>
 
                 <!-- Period Filter Preset -->
-                <div class="col-md-3">
-                    <label for="period" class="form-label fw-semibold">Quick Timeframe</label>
-                    <select id="period" name="period" class="form-select">
-                        <option value="" selected="@(string.IsNullOrEmpty(Model.SelectedPeriod))">-- Custom / All Time --</option>
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <label for="period" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-clock-history me-1"></i>Quick Timeframe
+                    </label>
+                    <select id="period" name="period" class="form-select auto-filter">
+                        <option value="" selected="@(string.IsNullOrEmpty(Model.SelectedPeriod))">-- All Time / Custom --</option>
                         <option value="week" selected="@(Model.SelectedPeriod == "week")">Last Week (Past 7 Days)</option>
                         <option value="month" selected="@(Model.SelectedPeriod == "month")">Last Month (Past 30 Days)</option>
                         <option value="year" selected="@(Model.SelectedPeriod == "year")">Last Year</option>
@@ -69,90 +81,183 @@
                 </div>
 
                 <!-- From Date -->
-                <div class="col-md-2">
-                    <label for="fromDate" class="form-label fw-semibold">From Date</label>
-                    <input type="date" id="fromDate" name="fromDate" class="form-control"
+                <div class="col-12 col-sm-6 col-lg-2">
+                    <label for="fromDate" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-calendar-event me-1"></i>From Date
+                    </label>
+                    <input type="date" id="fromDate" name="fromDate" class="form-control auto-filter"
                            value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
                 </div>
 
                 <!-- To Date -->
-                <div class="col-md-2">
-                    <label for="toDate" class="form-label fw-semibold">To Date</label>
-                    <input type="date" id="toDate" name="toDate" class="form-control"
+                <div class="col-12 col-sm-6 col-lg-2">
+                    <label for="toDate" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-calendar-check me-1"></i>To Date
+                    </label>
+                    <input type="date" id="toDate" name="toDate" class="form-control auto-filter"
                            value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-filter me-1"></i> Apply
-                    </button>
-                    <a asp-action="Index" class="btn btn-outline-secondary" title="Reset Filters">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                    </a>
+                <!-- Live Search Box (Client-side fast search) -->
+                <div class="col-12 col-lg-2">
+                    <label for="clientSearch" class="form-label fw-semibold small text-secondary">
+                        <i class="bi bi-search me-1"></i>Live Search
+                    </label>
+                    <input type="text" id="clientSearch" class="form-control" placeholder="Search table..." autocomplete="off" />
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Tasks Data Table -->
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            @if (!Model.Tasks.Any())
-            {
-                <div class="text-center py-5">
-                    <i class="bi bi-inbox text-muted display-4"></i>
-                    <h5 class="mt-3 text-secondary">No Tasks Found</h5>
-                    <p class="text-muted">No task submissions match the selected filter criteria.</p>
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover table-custom align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th style="width: 70px;" class="text-center">#</th>
-                                <th style="width: 220px;">Employee</th>
-                                <th style="width: 200px;">When Performed</th>
-                                <th style="width: 180px;">Submitted At</th>
-                                <th>Task Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var task in Model.Tasks)
-                            {
-                                <tr>
-                                    <td class="text-center fw-bold text-secondary">@task.Id</td>
-                                    <td>
-                                        <div class="fw-bold text-dark">@task.UserName</div>
-                                        <small class="text-muted"><i class="bi bi-envelope me-1"></i>@task.UserEmail</small>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-light text-dark border p-2">
-                                            <i class="bi bi-calendar2-check text-success me-1"></i>
-                                            @task.TaskDate.ToString("yyyy-MM-dd HH:mm")
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="text-muted small">
-                                            <i class="bi bi-clock me-1"></i>
-                                            @task.CreatedAt.ToString("yyyy-MM-dd HH:mm")
-                                        </span>
-                                    </td>
-                                    <td>
-                                        @if (!string.IsNullOrWhiteSpace(task.Title))
-                                        {
-                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">@task.Title</span>
-                                        }
-                                        <span class="text-break">@task.Description</span>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+    <!-- Tasks Data Table Card with Loading Overlay -->
+    <div class="card shadow-sm border-0 position-relative overflow-hidden" id="tasksCard">
+        <!-- Subtle AJAX Loading Overlay -->
+        <div id="loadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-none justify-content-center align-items-center"
+             style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(2px); z-index: 10;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading tasks...</span>
+            </div>
+        </div>
+
+        <div class="card-body p-0" id="tasksContainer">
+            @await Html.PartialAsync("_TasksTablePartial", Model)
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const userIdSelect = document.getElementById('userId');
+            const periodSelect = document.getElementById('period');
+            const fromDateInput = document.getElementById('fromDate');
+            const toDateInput = document.getElementById('toDate');
+            const clientSearchInput = document.getElementById('clientSearch');
+            const resetBtn = document.getElementById('resetFiltersBtn');
+            const exportBtn = document.getElementById('exportExcelBtn');
+            const tasksContainer = document.getElementById('tasksContainer');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const totalCountNumber = document.getElementById('totalCountNumber');
+
+            let activeController = null;
+
+            // Trigger immediate refresh on any filter change
+            document.querySelectorAll('.auto-filter').forEach(el => {
+                el.addEventListener('change', function () {
+                    // If user selects a quick preset, clear explicit date pickers
+                    if (this === periodSelect && this.value !== '') {
+                        fromDateInput.value = '';
+                        toDateInput.value = '';
+                    }
+
+                    // If user selects an explicit date, clear period preset
+                    if ((this === fromDateInput || this === toDateInput) && this.value !== '') {
+                        periodSelect.value = '';
+                    }
+
+                    executeLiveFilter();
+                });
+            });
+
+            // Reset filters button
+            resetBtn.addEventListener('click', function () {
+                userIdSelect.value = '';
+                periodSelect.value = '';
+                fromDateInput.value = '';
+                toDateInput.value = '';
+                clientSearchInput.value = '';
+                executeLiveFilter();
+            });
+
+            // Live instant search (Client-side fast search over visible table rows)
+            clientSearchInput.addEventListener('input', function () {
+                const query = this.value.trim().toLowerCase();
+                const rows = document.querySelectorAll('#tasksTable tbody tr.task-row');
+                let matchCount = 0;
+
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    if (text.includes(query)) {
+                        row.style.display = '';
+                        matchCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (totalCountNumber) {
+                    totalCountNumber.textContent = query === ''
+                        ? (document.getElementById('partialTotalCount')?.value || rows.length)
+                        : matchCount;
+                }
+            });
+
+            // Function to perform AJAX filter request with zero full-page reload
+            function executeLiveFilter() {
+                const params = new URLSearchParams();
+
+                if (userIdSelect.value) params.append('userId', userIdSelect.value);
+                if (periodSelect.value) params.append('period', periodSelect.value);
+                if (fromDateInput.value) params.append('fromDate', fromDateInput.value);
+                if (toDateInput.value) params.append('toDate', toDateInput.value);
+
+                const queryString = params.toString();
+                const exportUrl = '/admin/export' + (queryString ? '?' + queryString : '');
+                const ajaxUrl = '/admin' + (queryString ? '?' + queryString : '');
+
+                // Update the Export to Excel button href immediately
+                if (exportBtn) {
+                    exportBtn.href = exportUrl;
+                }
+
+                // Update the browser URL without reloading
+                window.history.pushState(null, '', ajaxUrl);
+
+                // Cancel previous in-flight request if user is quickly toggling
+                if (activeController) {
+                    activeController.abort();
+                }
+                activeController = new AbortController();
+
+                // Show subtle loading overlay
+                loadingOverlay.classList.remove('d-none');
+                loadingOverlay.classList.add('d-flex');
+
+                fetch(ajaxUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: activeController.signal
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Network error loading tasks');
+                    return res.text();
+                })
+                .then(html => {
+                    tasksContainer.innerHTML = html;
+
+                    // Sync the total count badge from the partial
+                    const partialCount = document.getElementById('partialTotalCount')?.value;
+                    if (partialCount !== undefined && totalCountNumber) {
+                        totalCountNumber.textContent = partialCount;
+                    }
+
+                    // Re-apply client search if user has typed something
+                    if (clientSearchInput.value.trim() !== '') {
+                        clientSearchInput.dispatchEvent(new Event('input'));
+                    }
+                })
+                .catch(err => {
+                    if (err.name !== 'AbortError') {
+                        console.error('Filter error:', err);
+                    }
+                })
+                .finally(() => {
+                    loadingOverlay.classList.add('d-none');
+                    loadingOverlay.classList.remove('d-flex');
+                });
+            }
+        })();
+    </script>
+}

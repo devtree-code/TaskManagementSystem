@@ -63,6 +63,8 @@ graph TD
 ```
 TaskManagementSystem/
 ├── BL/                                  # Business Logic Layer
+│   ├── Common/
+│   │   └── DateTimeHelper.cs            # Egypt Standard Time conversion & formatted date utilities
 │   ├── DTOs/
 │   │   ├── Admin/
 │   │   │   ├── AdminDashboardViewModel.cs # ViewModel for admin task listing & filter state
@@ -101,7 +103,8 @@ TaskManagementSystem/
 │   └── launchSettings.json              # Development port configurations (5153 / 7139)
 ├── Views/                               # Razor Views for Admin Portal
 │   ├── Admin/
-│   │   ├── Index.cshtml                 # Admin dashboard with dynamic filters & table
+│   │   ├── Index.cshtml                 # Admin dashboard with dynamic filters & live refresh
+│   │   ├── _TasksTablePartial.cshtml    # Responsive AJAX partial for zero-reload table updates
 │   │   └── Login.cshtml                 # Admin portal login view
 │   ├── Shared/
 │   │   └── _Layout.cshtml               # Bootstrap 5 layout, navbar, branding
@@ -231,14 +234,14 @@ private static IQueryable<UserTask> ApplyFilters(IQueryable<UserTask> query, str
 
 The `ExcelExportService` constructs an open XML spreadsheet (`.xlsx`) in memory and streams it to the client:
 1. **Title Banner**: Navy blue `#0F2C59` banner with centered bold white text.
-2. **Metadata Subtitle**: Displays the active filter parameters (e.g. `User: John Doe | Period: Last Month | Exported: 2026-10-21 02:15 UTC`).
+2. **Metadata Subtitle (Egypt Local Time)**: Displays active filter parameters along with the exact local Egypt timestamp via `DateTimeHelper.NowInEgypt()` (e.g. `Filters: User: All Users | Period: Last Month | Exported: 2026-10-21 05:50 AM (Egypt Time) | Total: 31`).
 3. **Table Headers**: Steel blue `#1F4E79` background with white bold typography.
 4. **Data Rows**:
    - Column 1: `Task #` (Numeric, centered)
    - Column 2: `Employee Name` (Text, left-aligned)
    - Column 3: `Email` (Text, left-aligned)
-   - Column 4: `When Did They Do It (Task Date)` (Formatted as `yyyy-MM-dd HH:mm`, centered)
-   - Column 5: `Submission Date (Created At)` (Formatted as `yyyy-MM-dd HH:mm`, centered)
+   - Column 4: `When Did They Do It (Task Date)` (Formatted in Egypt Time as `yyyy-MM-dd hh:mm tt`, centered)
+   - Column 5: `Submission Date (Created At)` (Formatted in Egypt Time as `yyyy-MM-dd hh:mm tt`, centered)
    - Column 6: `Task Description` (Text wrapped, left-aligned)
 5. **Formatting**: Alternating light zebra striping (`#F2F4F7`), thin gray grid borders, and automatic column width adjustments.
 

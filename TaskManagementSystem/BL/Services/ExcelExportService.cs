@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using TaskManagementSystem.BL.Common;
 using TaskManagementSystem.BL.DTOs.Tasks;
 
 namespace TaskManagementSystem.BL.Services
@@ -15,7 +16,7 @@ namespace TaskManagementSystem.BL.Services
 
             int currentRow = 1;
 
-            // Optional title banner
+            // 1. Title Banner
             worksheet.Cell(currentRow, 1).Value = "Task Management System — Export Report";
             worksheet.Range(currentRow, 1, currentRow, 6).Merge();
             worksheet.Row(currentRow).Height = 28;
@@ -29,10 +30,11 @@ namespace TaskManagementSystem.BL.Services
 
             currentRow++;
 
-            // Report metadata row
+            // 2. Report Metadata Row (Using Egypt Time)
+            var egyptNow = DateTimeHelper.NowInEgypt();
             var subtitle = string.IsNullOrWhiteSpace(filterSummary)
-                ? $"Exported on: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC | Total Tasks: {tasks.Count()}"
-                : $"Filters: {filterSummary} | Exported: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC | Total: {tasks.Count()}";
+                ? $"Exported on: {egyptNow:yyyy-MM-dd hh:mm tt} | Total Tasks: {tasks.Count()}"
+                : $"Filters: {filterSummary} | Exported: {egyptNow:yyyy-MM-dd hh:mm tt} | Total: {tasks.Count()}";
 
             worksheet.Cell(currentRow, 1).Value = subtitle;
             worksheet.Range(currentRow, 1, currentRow, 6).Merge();
@@ -47,7 +49,7 @@ namespace TaskManagementSystem.BL.Services
 
             currentRow++;
 
-            // Table Headers
+            // 3. Table Headers
             var headers = new[]
             {
                 "Task #",
@@ -72,10 +74,9 @@ namespace TaskManagementSystem.BL.Services
             }
             worksheet.Row(currentRow).Height = 24;
 
-            int headerRow = currentRow;
             currentRow++;
 
-            // Populate Data Rows
+            // 4. Populate Data Rows
             var taskList = tasks.ToList();
             for (int i = 0; i < taskList.Count; i++)
             {
@@ -98,14 +99,14 @@ namespace TaskManagementSystem.BL.Services
                 var c3 = worksheet.Cell(currentRow, 3);
                 c3.Value = item.UserEmail;
 
-                // Col 4: Task Date (When Did They Do It)
+                // Col 4: Task Date (When Did They Do It - Egypt Time)
                 var c4 = worksheet.Cell(currentRow, 4);
-                c4.Value = item.TaskDate.ToString("yyyy-MM-dd HH:mm");
+                c4.Value = DateTimeHelper.FormatEgypt(item.TaskDate);
                 c4.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-                // Col 5: Created At (When Submitted)
+                // Col 5: Created At (When Submitted - Egypt Time)
                 var c5 = worksheet.Cell(currentRow, 5);
-                c5.Value = item.CreatedAt.ToString("yyyy-MM-dd HH:mm");
+                c5.Value = DateTimeHelper.FormatEgypt(item.CreatedAt);
                 c5.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                 // Col 6: Description
@@ -145,8 +146,8 @@ namespace TaskManagementSystem.BL.Services
             worksheet.Column(1).Width = 10; // Task #
             worksheet.Column(2).Width = 24; // Name
             worksheet.Column(3).Width = 28; // Email
-            worksheet.Column(4).Width = 28; // Task Date
-            worksheet.Column(5).Width = 28; // Submission Date
+            worksheet.Column(4).Width = 30; // Task Date
+            worksheet.Column(5).Width = 30; // Submission Date
             worksheet.Column(6).Width = 50; // Description
 
             using var memoryStream = new MemoryStream();
